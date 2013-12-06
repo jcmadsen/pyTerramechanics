@@ -91,7 +91,8 @@ class WongReece:
     A class for running the wong/reece equilibrium model
     '''
     
-    def __init__(self,coh,phi,k1,k2,n,K,wheel_r,wheel_b,weight_W,skid,c1=0.43,c2=0.32,gen_plots=False):
+    def __init__(self,coh,phi,k1,k2,n,K,wheel_r,wheel_b,weight_W,skid,
+                 c1=0.43,c2=0.32,gen_plots=False,units='ips'):
         '''
         Purpose:
             requires the user to input the necessary soil, wheel constants
@@ -133,6 +134,8 @@ class WongReece:
         # for a driven wheel
         self._c1 = c1
         self._c2 = c2
+        self._units = units # unit system, assumed to be inch/pound/second.
+        # if specified else, assume we're using SI, e.g. meter/kg/sec
         
         # do any other constants need to be pre-calculated?
         self._slip_arr = py.arange(0.1,0.75,0.05)
@@ -272,7 +275,10 @@ class WongReece:
             ax = fig.add_subplot(212)
             ax.plot(i_range,t1_arr,i_range,t2_arr,i_range,t3_arr,i_range,t4_arr,linewidth=1.5)
             ax.set_xlabel('skid ratio')
-            ax.set_ylabel('weight [lb]')
+            if( self._units == 'ips'):
+                ax.set_ylabel('weight [lb]')
+            else:
+                ax.set_ylabel('weight [kg]')
             ax.set_xlim([0,i_range[len(i_range)-1]+0.2])
             ax.legend((r'$\sigma_1$',r'$\sigma_2$',r'$\tau_1$',r'$\tau2$'))
             ax.grid(True)
@@ -457,7 +463,10 @@ class WongReece:
             ax = fig.add_subplot(111,title='Fig. ' + str(figNum) +'(a)')
             ax.plot(i_range,torque_arr,'k--',i_range,t1_arr,i_range,t2_arr,linewidth=1.5)
             ax.set_xlabel('skid ratio')
-            ax.set_ylabel('Torque [lb-in]' )
+            if( self._units == 'ips'):
+                ax.set_ylabel('Torque [lb-in]' )
+            else:
+                ax.set_ylabel('Torque [N-m]')
             # ax.set_ylabel('Torque [N-m]')
             ax.set_xlim([0,i_range[len(i_range)-1]+0.2])
             ax.legend(('T',r'$\tau_1$',r'$\tau_2$')) #,loc=2)
@@ -524,7 +533,10 @@ class WongReece:
             ax = fig.add_subplot(111,title='Fig.'+str(figNum)+'(c)')
             ax.plot(i_range,torque_arr,'k--',i_range,t1_arr,i_range,t2_arr,linewidth=1.5)
             ax.set_xlabel('slip ratio')
-            ax.set_ylabel('Torque [lb-in]' )
+            if( self._units == 'ips'):
+                ax.set_ylabel('Torque [lb-in]' )
+            else:
+                ax.set_ylabel('Torque [N-m]')
             ax.set_xlim([0,i_range[len(i_range)-1]+0.2])
             ax.legend(('T',r'$\tau_1$',r'$\tau_2$'))
             ax.grid(True)
@@ -602,8 +614,10 @@ class WongReece:
             ax = fig.add_subplot(211,title='Fig.' + str(figNum) + '(b) [top] and Fig.'+str(figNum) + '(c) [bottom]')
             ax.plot(i_range,t3_arr-t4_arr,i_range,t1_arr+t2_arr,linewidth=1.5)
             ax.set_xlabel('skid ratio')
-            ax.set_ylabel('Force [lb]' )
-            # ax.set_ylabel('Force [N]')
+            if( self._units == 'ips'):            
+                ax.set_ylabel('Force [lb]' )
+            else:
+                ax.set_ylabel('Force [N]')
             ax.set_xlim([0,i_range[len(i_range)-1]+0.2])
             ax.legend(('H','R'))
             ax.grid(True)
@@ -612,8 +626,10 @@ class WongReece:
             ax.plot(i_range,force_arr,'k--',i_range,t1_arr,i_range,t2_arr,i_range,t3_arr,i_range,t4_arr,linewidth=1.5)
             # ax.plot(i_range,force_arr,'k--',linewidth=1.5)            
             ax.set_xlabel('skid ratio')
-            ax.set_ylabel('Force [lb]')
-            # ax.set_ylabel('Force [N]')
+            if( self._units == 'ips'):         
+                ax.set_ylabel('Force [lb]')
+            else:
+                ax.set_ylabel('Force [N]')
             ax.set_xlim([0,i_range[len(i_range)-1]+0.2])
             ax.legend(('F',r'$\sigma_1$',r'$\sigma_2$',r'$\tau_1$',r'$\tau_2$'))
             ax.grid(True)
@@ -698,7 +714,10 @@ class WongReece:
             ax = fig.add_subplot(212,title='H and R')
             ax.plot(i_range,force_arr,'k--',i_range,t1_arr,i_range,t2_arr,i_range,t3_arr,i_range,t4_arr,linewidth=1.5)
             ax.set_xlabel('slip ratio')
-            ax.set_ylabel('Force [lb]' )
+            if( self._units == 'ips'):
+                ax.set_ylabel('Force [lb]' )
+            else:
+                ax.set_ylabel('Force [N]')
             ax.set_xlim([0,i_range[len(i_range)-1]+0.2])
             ax.legend(('D',r'$\sigma_1$',r'$\sigma_2$',r'$\tau_1$',r'$\tau_2$'))
             ax.grid(True)    
@@ -749,15 +768,43 @@ class WongReece:
             ax = fig.add_subplot(211,title='Fig. ' + str(figNum) +' skid=' + str(skid))
             ax.plot(radToDeg(th_arr),sig_arr,radToDeg(th_arr),tau_arr,linewidth=1.5)
             ax.set_xlabel('theta [deg]')
-            ax.set_ylabel('stress [psi]')
+            if( self._units == 'ips'):
+                ax.set_ylabel('stress [psi]')
+            else:
+                ax.set_ylabel('stress [Pa]')
             ax.legend((r'$\sigma$($\theta$)',r'$\tau$($\theta$)'))
             ax.grid(True)
             # take a look at what I"m using for slip displacement also
             ax = fig.add_subplot(212)
             ax.plot(radToDeg(th_arr),slip_arr,linewidth=1.5)
             ax.set_xlabel('theta [deg]')
-            ax.set_ylabel('slip disp.[in]')
+            if( self._units == 'ips'):
+                ax.set_ylabel('slip disp.[in]')
+            else:
+                ax.set_ylabel('slip disp.[m]')
             ax.grid(True)
+            
+             # polar plots
+            fig=plt.figure()
+            ax=fig.add_subplot(111,projection='polar')
+            ax.plot(th_arr,sig_arr/1000.,'b',linewidth=1.5)
+            ax.plot(th_arr,tau_arr/1000.,'r--',linewidth=1.5)
+            # fix the axes
+            ax.grid(True)
+            if( self._units == 'ips'):
+                leg = ax.legend((r'$\sigma$ [kip]',r'$\tau$'))
+            else:
+                leg = ax.legend((r'$\sigma$ [kPa]',r'$\tau$'))
+            leg.draggable()
+            ax.set_theta_zero_location('S')
+            # also, draw the tire
+            polar_r_offset = py.average(sig_arr)/1000.
+            theta = py.arange(0.,2.*py.pi+0.05,0.05)
+            tire_pos = py.zeros(len(theta))
+            ax.plot(theta,tire_pos,color='k',linewidth=1.0)
+            ax.set_rmin(-polar_r_offset)
+            ax.set_title(r'towed wheel stresses,  $\theta_1$ = %4.3f [rad]' %th1_cs)
+            ax.set_thetagrids([-10,0,10,20,30,40,50,60])
             
         return [sig_arr, tau_arr]
     
@@ -814,8 +861,35 @@ class WongReece:
             ax = fig.add_subplot(212)
             ax.plot(radToDeg(th_arr),slip_arr,linewidth=1.5)
             ax.set_xlabel('theta [deg]')
-            ax.set_ylabel('slip disp.[in]')
+            if( self._units == 'ips'):
+                ax.set_ylabel('slip disp.[in]')
+            else:
+                ax.set_ylabel('slip disp.[m]')
             ax.grid(True)
+            
+            # polar plots
+            fig=plt.figure()
+            ax=fig.add_subplot(111,projection='polar')
+            ax.plot(th_arr,sig_arr/1000.,'b',linewidth=1.5)
+            ax.plot(th_arr,tau_arr/1000.,'r--',linewidth=1.5)
+            # fix the axes
+            ax.grid(True)
+            if( self._units == 'ips'):
+                leg = ax.legend((r'$\sigma$ [kip]',r'$\tau$'))
+            else:
+                leg = ax.legend((r'$\sigma$ [kPa]',r'$\tau$'))
+            leg.draggable()
+            ax.set_theta_zero_location('S')
+            # also, draw the tire
+            polar_r_offset = py.average(sig_arr)/1000.
+            theta = py.arange(0.,2.*py.pi+0.05,0.05)
+            tire_pos = py.zeros(len(theta))
+            ax.plot(theta,tire_pos,color='k',linewidth=1.0)
+            ax.set_rmin(-polar_r_offset)
+            ax.set_title(r'driven wheel stresses, $\theta_1$ = %4.3f [rad]' %th1_cs)
+            ax.set_thetagrids([-10,0,10,20,30,40,50,60])
+            
+
         
         return [sig_arr,tau_arr]
 

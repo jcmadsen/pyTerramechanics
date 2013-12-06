@@ -68,7 +68,7 @@ if __name__ == '__main__':
     c2 = 0.32
     # note: must input a value for skid rate, from [0 - x], but should be at least 0.1
 #    Compact_sand = WR.WongReece(coh,phi,k1,k2,n,K,rad,wid,Weight,slip,0.43,0.32,True)
-    Loose_sand = WR.WongReece(coh,phi,k1,k2,n,K,rad,wid,Weight,slip,c1,c2,True)
+    Loose_sand = WR.WongReece(coh,phi,k1,k2,n,K,rad,wid,Weight,slip,c1,c2,True,'Pa')
     # Loose_sand_wide = WR(0.12,WR.degToRad(31.1),0.0,2.0,1.15,1.5,24.7,12.0,2080,skid)
 
     # driven
