@@ -54,16 +54,16 @@ if __name__ == '__main__':
     '''
     
     # from Azimi (2013) Table II (pg 8)
-    slip = 0.2 
-    coh = 234   # cohesion [Pa]
-    phi = WR.degToRad(30.)  # degrees
-    k1 = 4.1E5  # N/m^(n+2)
-    k2 = 0
-    n = 0.8
-    K = .013 # shear modulus, [m] = 13 mm = 0.5 in
     rad = 0.3/2.  # wheel radius, [m]
     wid = 0.1   # wheel width, [m]
-    Weight = 2006.0 # wheel weight, lbs
+    slip = 0.2 
+    coh = 234.0   # cohesion [Pa]
+    phi = WR.degToRad(30.)  # degrees
+    k1 = 0.0 # N/m^(n+2) k_c
+    k2 = 4.1E5 # k_phi
+    n = 0.8
+    K = .013 # shear modulus, [m] = 13 mm = 0.5 in
+    Weight = 165.0 # wheel weight, N
     c1 = 0.18
     c2 = 0.32
     # note: must input a value for skid rate, from [0 - x], but should be at least 0.1
@@ -79,9 +79,9 @@ if __name__ == '__main__':
     Loose_sand.plot_z0_driven(10)
     
     # towed
-    th1_tow = Loose_sand.eval_W_integral_towed(slip)
-    Loose_sand.plot_sigTau_towed(th1_tow,slip)
-    Loose_sand.eval_F_integral_towed(th1_tow, slip)
-    Loose_sand.eval_T_integral_towed(th1_tow,slip)
+#    th1_tow = Loose_sand.eval_W_integral_towed(slip)
+#    Loose_sand.plot_sigTau_towed(th1_tow,slip)
+#    Loose_sand.eval_F_integral_towed(th1_tow, slip)
+#    Loose_sand.eval_T_integral_towed(th1_tow,slip)
     
     py.show()

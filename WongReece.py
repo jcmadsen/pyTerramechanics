@@ -401,7 +401,7 @@ class WongReece:
             self._th1_arr = th1_array
             self._thm_arr = th_m_array             
         
-        W_check = W_driven_func(0.641,0.0,W,r,b,n,k1,k2,phi,slip,K,coh,c1,c2)
+        W_check = W_driven_func(th1,0.0,W,r,b,n,k1,k2,phi,slip,K,coh,c1,c2)
         lg.info('weight check = ' + str(W_check))         
         return th1
     
@@ -852,9 +852,12 @@ class WongReece:
         if( self._plots):        
             fig = plt.figure()
             ax = fig.add_subplot(211,title='Fig.'+str(figNum) )
-            ax.plot(radToDeg(th_arr),sig_arr,radToDeg(th_arr),tau_arr,linewidth=1.5)
+            ax.plot(radToDeg(th_arr),sig_arr/1000.,radToDeg(th_arr),tau_arr/1000.,linewidth=1.5)
             ax.set_xlabel('theta [deg]')
-            ax.set_ylabel('stress [psi]')
+            if( self._units == 'ips'):
+                ax.set_ylabel('stress [ksi]')
+            else:
+                ax.set_ylabel('stress [kPa]')
             ax.legend(('sigma','tau'))
             ax.grid(True)
             # take a look at what I"m using for slip displacement also
