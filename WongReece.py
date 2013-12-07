@@ -86,6 +86,16 @@ def theta_m(th1,c1,c2,slip):
     outval = (c1+c2*slip)*th1
     return outval
 
+# Include Bekker's formulas for comparison
+def sig_bek(th,th1,r,b,n,k1,k2):
+    sig_out = ((py.cos(th) - py.cos(th1))**n) *(k1/b + k2)*(r)**n
+    return sig_out
+
+def tau_bek(th,th1,r,b,n,k1,k2,coh,phi,K,slip):
+    j_disp = jdriven(th,th1,r,slip)
+    tau_out = (coh +sig_bek(th,th1,r,b,n,k1,k2) *py.tan(phi) ) *(1.0 -py.exp(-j_disp /K) )
+    return tau_out
+
 class WongReece:
     '''
     A class for running the wong/reece equilibrium model
@@ -111,6 +121,7 @@ class WongReece:
             _coh
             _phi
             _k1
+
             _k2
             _n
             _K
@@ -138,7 +149,7 @@ class WongReece:
         # if specified else, assume we're using SI, e.g. meter/kg/sec
         
         # do any other constants need to be pre-calculated?
-        self._slip_arr = py.arange(0.1,0.75,0.05)
+        self._slip_arr = py.arange(0.1,0.85,0.05)
         # point of maximum stress, th0, can be found immediately for a towed wheel
         self._th0 = self.__eval_th0_towed(self._plots)
         # for towed wheels, generally the exit angle is zero
@@ -401,8 +412,8 @@ class WongReece:
             self._th1_arr = th1_array
             self._thm_arr = th_m_array             
         
-        W_check = W_driven_func(0.641,0.0,W,r,b,n,k1,k2,phi,slip,K,coh,c1,c2)
-        lg.info('weight check = ' + str(W_check))         
+        W_check = W_driven_func(th1,0.0,W,r,b,n,k1,k2,phi,slip,K,coh,c1,c2)
+        lg.info('weight check = ' + str(W_check) + ' for a th_1 of ' +str(th1))         
         return th1
     
     # this should really be equal to zero for the towed case
@@ -810,7 +821,7 @@ class WongReece:
     
     # plot the normal, shear stress distributions along theta, driven wheel
     # return the y-vals for [sigma, tau], so I can plot lots of these    
-    def plot_sigTau_driven(self,th1_cs,slip,figNum=11):
+    def plot_sigTau_driven(self,th1_cs,slip,figNum=11,plotBekker=False):
         th_m = self._thm
         th2 = self._th2
         r = self._radius
@@ -823,7 +834,7 @@ class WongReece:
         c = self._coh
         
         incr = (th1_cs - th2) / 100.0    # plot increment
-        th_arr = py.arange(0,th1_cs + incr, incr) # find sigma, tau at these discrete vals
+        th_arr = py.arange(0,th1_cs, incr) # find sigma, tau at these discrete vals
         sig_arr = py.zeros(len(th_arr))
         tau_arr = py.zeros(len(th_arr))
         slip_arr = py.zeros(len(th_arr))
@@ -855,8 +866,14 @@ class WongReece:
             ax.plot(radToDeg(th_arr),sig_arr,radToDeg(th_arr),tau_arr,linewidth=1.5)
             ax.set_xlabel('theta [deg]')
             ax.set_ylabel('stress [psi]')
-            ax.legend(('sigma','tau'))
+            ax.legend((r'$\sigma$',r'$\tau$'))
             ax.grid(True)
+            # can also plot Bekker's solution
+            if(plotBekker):
+                th_bek, sig_bek, tau_bek = self.get_sigTau_Bekker_driven(slip)
+                ax.plot(radToDeg(th_bek),sig_bek, radToDeg(th_bek), tau_bek, linewidth=1.5)
+                ax.legend((r'$\sigma$',r'$\tau$',r'$\sigma_bek$',r'$\tau_bek$'))
+                
             # take a look at what I"m using for slip displacement also
             ax = fig.add_subplot(212)
             ax.plot(radToDeg(th_arr),slip_arr,linewidth=1.5)
@@ -870,18 +887,18 @@ class WongReece:
             # polar plots
             fig=plt.figure()
             ax=fig.add_subplot(111,projection='polar')
-            ax.plot(th_arr,sig_arr/1000.,'b',linewidth=1.5)
-            ax.plot(th_arr,tau_arr/1000.,'r--',linewidth=1.5)
+            ax.plot(th_arr,sig_arr,'b',linewidth=1.5)
+            ax.plot(th_arr,tau_arr,'r--',linewidth=1.5)
             # fix the axes
             ax.grid(True)
             if( self._units == 'ips'):
-                leg = ax.legend((r'$\sigma$ [kip]',r'$\tau$'))
+                leg = ax.legend((r'$\sigma$ [psi]',r'$\tau$'))
             else:
-                leg = ax.legend((r'$\sigma$ [kPa]',r'$\tau$'))
+                leg = ax.legend((r'$\sigma$ [Pa]',r'$\tau$'))
             leg.draggable()
             ax.set_theta_zero_location('S')
             # also, draw the tire
-            polar_r_offset = py.average(sig_arr)/1000.
+            polar_r_offset = py.average(sig_arr)
             theta = py.arange(0.,2.*py.pi+0.05,0.05)
             tire_pos = py.zeros(len(theta))
             ax.plot(theta,tire_pos,color='k',linewidth=1.0)
@@ -889,6 +906,56 @@ class WongReece:
             ax.set_title(r'driven wheel stresses, $\theta_1$ = %4.3f [rad]' %th1_cs)
             ax.set_thetagrids([-10,0,10,20,30,40,50,60])
             
+    def get_sigTau_Bekker_driven(self,slip):
+        '''
+        Returns:
+            [theta_arr,sigma_array,tau_array]
+            for plotting
+        '''
+        # this is nice, only solve for 1 normal and shear equation
+        def w_func_bek_d1(th,th1,r,b,n,k1,k2):
+            outval = sig_bek(th,th1,r,b,n,k1,k2)*py.cos(th)
+            return outval
+        def w_func_bek_d2(th,th1,r,b,n,k1,k2,coh,phi,K,slip):
+            outval = tau_bek(th,th1,r,b,n,k1,k2,coh,phi,K,slip)*py.sin(th)
+            return outval
+        # returns error of weight equation, used with fsolve when finding th1
+        def W_bek_driven_func(th1,th2,W,r,b,n,k1,k2,phi,slip,K,coh,c1,c2):
+            term1 = sci_int.quad(w_func_bek_d1, th2, th1, args=(th1,r,b,n,k1,k2) )
+            term2 = sci_int.quad(w_func_bek_d2, th2, th1, args=(th1,r,b,n,k1,k2,coh,phi,K,slip) )
+            error = r*b*(term1[0] + term2[0] ) - W
+            return error
+         
+        # end helper functions
+        # solve for contact angle, th_1, using equlibrium of vertical forces
+        th2 = self._th2
+        k1 = self._k1
+        k2 = self._k2
+        b = self._width
+        r = self._radius
+        n = self._n
+        coh = self._coh
+        K = self._K
+        phi = self._phi
+        W = self._weight
+        c1 = self._c1
+        c2 = self._c2
+        # initial guess for theta 1
+        th1_initial = degToRad(35.0)
+        # iterate until th1 is found
+        th1 = sci_opt.fsolve(W_bek_driven_func,th1_initial,args=(th2,W,r,b,n,k1,k2,phi,slip,K,coh,c1,c2) )
+        lg.info('slip rate = ' + str(slip))
+        lg.info('theta_1, Bekker[deg] = ' + str(radToDeg(th1)) )
+        incr = (th1 - th2)/100.
+        theta_arr = py.arange(th2,th1+incr,incr)
+        sig_arr = sig_bek(theta_arr,th1,r,b,n,k1,k2)
+        tau_arr = tau_bek(theta_arr,th1,r,b,n,k1,k2,coh,phi,K,slip)
+        
+        W_check = W_bek_driven_func(th1,0.0,W,r,b,n,k1,k2,phi,slip,K,coh,c1,c2)
+        lg.info('weight check, Bekker = ' + str(W_check) + ', ought to be zero')    
+        
+        # return theta, sigma, tau, for plotting
+        return [theta_arr, sig_arr, tau_arr]  
 
         
         return [sig_arr,tau_arr]
@@ -992,13 +1059,12 @@ if __name__ == '__main__':
     
     # neglegct rut recovery, th2 = 0
     # solve for th1 in W = f(th1)
-    
     th1_cs = Compact_sand.eval_W_integral_towed(skid,8)
     Torque = Compact_sand.eval_T_integral_towed(th1_cs, skid,8)
     Force = Compact_sand.eval_F_integral_towed(th1_cs, skid,8)
     Compact_sand.plot_sigTau_towed(th1_cs,skid,11)
-    [th0_check,th1_check,T_check,F_check] = Compact_sand.eval_towed_vars(skid)
-
+#    [th0_check,th1_check,T_check,F_check] = Compact_sand.eval_towed_vars(skid)
+    '''
     #on loose sand
     th1_ls = Loose_sand.eval_W_integral_towed(skid_ls,9)
     Loose_sand.eval_T_integral_towed(th1_ls, skid_ls,9)
@@ -1010,5 +1076,5 @@ if __name__ == '__main__':
     Loose_sand_wide.eval_T_integral_towed(th1_ls, skid_ls_wide,10)
     Loose_sand_wide.eval_F_integral_towed(th1_ls,skid_ls_wide,10)
     Loose_sand_wide.plot_sigTau_towed(th1_ls, skid_ls_wide,13)
-       
+   '''    
     py.show()
