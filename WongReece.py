@@ -166,7 +166,7 @@ class WongReece:
             out = py.tan(degToRad(45.0)-phi/2.0) - (py.cos(th0) - (1.0/(1.0+i)) ) / py.sin(th0)
             return out
         # initial guess for theta 0
-        th0_initial = degToRad(25.0)
+        th0_initial = degToRad(15.0)
         i0 = self._skid
         solve_output = sci_opt.fsolve(contactAngleFunc,th0_initial,args=(i0,self._phi),xtol=1E-7  )
         lg.info('skid rate i = ' + str(i0) + ' th0 = ' + str(radToDeg(solve_output)) + 'degrees')
@@ -193,7 +193,6 @@ class WongReece:
             # finally, hold onto these arrays for skid, th0
             # note: only keep the first th0_arr row
             self._th0_arr = th0_arr[len(phi_arr)-1,:]
-            return solve_output
                 
         return solve_output
     

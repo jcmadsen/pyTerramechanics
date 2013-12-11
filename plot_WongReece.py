@@ -80,8 +80,8 @@ if __name__ == '__main__':
     sand = WR.WongReece(coh,phi,k1,k2,n,K,rad,wid,Weight,slip,c1,c2,True,'Pa')
 
     # wheel is driven in this paper
-    th1_ls = sand.eval_W_integral_driven(slip)
-    sand.plot_sigTau_driven(th1_ls,slip,7,True) # True = also plot the Bekker solution for normal and shear stress
+    th1_sand = sand.eval_W_integral_driven(slip)
+    sand.plot_sigTau_driven(th1_sand,slip,7,True) # True = also plot the Bekker solution for normal and shear stress
 #    sand.eval_F_integral_driven(th1_ls,slip,10)
 #    sand.eval_T_integral_driven(th1_ls,slip,10)
     sand.plot_z0_driven(10)
