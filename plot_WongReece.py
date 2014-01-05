@@ -30,7 +30,7 @@ if __name__ == '__main__':
     
     # use the constants from Table 1 to validate procedure
     # skid = 0.18
-    '''
+    
     slip = 0.221    # so I can match Fig 5. for pressure(theta), paper 1
     coh = 0.1   # cohesion
     phi = WR.degToRad(33.3)  # degrees
@@ -45,13 +45,15 @@ if __name__ == '__main__':
     Compact_sand = WR.WongReece(coh,phi,k1,k2,n,K,rad,wid,Weight,slip,0.43,0.32,True)
     Loose_sand = WR.WongReece(0.12,WR.degToRad(31.1),0.0,2.0,1.15,1.5,24.7,6.0,1986,slip,0.18,0.32,True)
     Loose_wide_sand = WR.WongReece(0.12,WR.degToRad(31.1),0.0,2.0,1.15,1.5,24.7,12.0,2085,slip,0.18,0.32,True)
-
+    '''
     th1_cs = Compact_sand.eval_W_integral_driven(slip)
     Compact_sand.plot_sigTau_driven(th1_cs,slip,11,True)
     Compact_sand.eval_F_integral_driven(th1_cs,slip,8)
     Compact_sand.eval_T_integral_driven(th1_cs,slip,10)
     Compact_sand.plot_z0_driven(10)
+    '''
     
+    # both wide and narrow wheels have experimental data, use them for comparison
     th1_ls = Loose_sand.eval_W_integral_driven(slip)
     Loose_sand.plot_sigTau_driven(th1_ls,slip,12,True)
     Loose_sand.eval_F_integral_driven(th1_ls,slip,10)
@@ -60,9 +62,9 @@ if __name__ == '__main__':
     
     th1_ws = Loose_wide_sand.eval_W_integral_driven(slip)
     Loose_wide_sand.plot_sigTau_driven(th1_ws,slip,13)    
+    
+    
     '''
-    
-    
     # from Azimi (2013) Table III (pg 8)
     slip = 0.2 
     coh = 234.0   # cohesion [Pa]
@@ -85,7 +87,7 @@ if __name__ == '__main__':
 #    sand.eval_F_integral_driven(th1_ls,slip,10)
 #    sand.eval_T_integral_driven(th1_ls,slip,10)
     sand.plot_z0_driven(10)
-    
+    '''
     
     '''
     # towed
